@@ -69,7 +69,7 @@ def draw_text(surf, text, size, x, y):
     surf.blit(text_surface, text_rect)
 
 def new_rock():
-    r = Rock()
+    r = Rock(speed_level)
     all_sprites.add(r)
     rocks.add(r)
 
@@ -172,7 +172,7 @@ class Player(pygame.sprite.Sprite):
         self.gun_time = pygame.time.get_ticks()
 
 class Rock(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, speed_level):
         pygame.sprite.Sprite.__init__(self)
         self.image_ori = random.choice(rock_imgs)
         self.image_ori.set_colorkey(BLACK)
@@ -181,8 +181,8 @@ class Rock(pygame.sprite.Sprite):
         self.radius = int(self.rect.width * 0.85 / 2)
         self.rect.x = random.randrange(0,WIDTH-self.rect.width)
         self.rect.y = random.randrange(-180,-100)
-        self.speedy = random.randrange(2,10)
-        self.speedx = random.randrange(-3,3)
+        self.speedy = random.randrange(speed_level+2, speed_level+10)
+        self.speedx = random.randrange(-3, 3)
         self.total_degree = 0
         self.rot_degree = random.randrange(-3,3)
 
@@ -201,8 +201,8 @@ class Rock(pygame.sprite.Sprite):
         if self.rect.top > HEIGHT or self.rect.left > WIDTH or self.rect.right < 0:
             self.rect.x = random.randrange(0,WIDTH-self.rect.width)
             self.rect.y = random.randrange(-100,-40)
-            self.speedy = random.randrange(2,10)
-            self.speedx = random.randrange(-3,3) 
+            self.speedy = random.randrange(speed_level+2, speed_level+10)
+            self.speedx = random.randrange(-3, 3) 
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -264,6 +264,7 @@ bullets = pygame.sprite.Group()
 powers = pygame.sprite.Group()
 player = Player()
 all_sprites.add(player)
+speed_level = 0
 for i in range(8):
     new_rock()
 score = 0
@@ -285,10 +286,13 @@ while running :
         powers = pygame.sprite.Group()
         player = Player()
         all_sprites.add(player)
+        speed_level = 0 
         for i in range(8):
             new_rock()
         score = 0
+
     clock.tick(FPS)
+
     #取得输入
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -300,11 +304,14 @@ while running :
 
     # 更新数据 
     all_sprites.update()
+
     # 判断石头与子弹相撞
     hits = pygame.sprite.groupcollide(rocks, bullets, True, True)
     for hit in hits:
         random.choice(expl_sounds).play()
         score += hit.radius
+        if score - 1500 * speed_level >= 0:
+            speed_level += 1
         expl = Explosion(hit.rect.center, 'lg')
         all_sprites.add(expl)
         if random.random() > 0.95:
@@ -339,6 +346,8 @@ while running :
         elif hit.type == 'gun':
             player.gunup()
             gun_sound.play()
+
+    # 判断飞船生命耗尽        
     if player.lives == 0 and not(death_expl.alive()):
         show_init = True
 
@@ -346,7 +355,8 @@ while running :
     screen.fill(BLACK)
     screen.blit(background_img, (0,0))
     all_sprites.draw(screen)
-    draw_text(screen, str(score), 18, WIDTH/2, 10)
+    draw_text(screen, "分数："+str(+score), 18, WIDTH*2/5, 10)
+    draw_text(screen,"难度："+str(speed_level),18,WIDTH*2/3,10)
     draw_health(screen, player.health,5,15)
     draw_lives(screen, player.lives, player_mini_img, WIDTH-100, 15)
     pygame.display.update()
