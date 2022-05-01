@@ -3,11 +3,20 @@ import random
 import os
 import settings
 
+FPS = 60
+WIDTH = 500
+HEIGHT = 600
+
+WHITE = (255,255,255)
+BLACK = (0,0,0)
+GREEN = (0,255,0)
+RED = (255, 0, 0)
+YELLOW = (255,255,0)
 
 #游戏初始化及创建视窗
 pygame.init()
 pygame.mixer.init()
-screen = pygame.display.set_mode((settings.WIDTH, settings.HEIGHT))
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("太空生存战")
 
 clock = pygame.time.Clock()
@@ -16,7 +25,7 @@ clock = pygame.time.Clock()
 background_img = pygame.image.load(os.path.join("img", "background.png")).convert()
 player_img = pygame.image.load(os.path.join("img", "player.png")).convert()
 player_mini_img = pygame.transform.scale(player_img,(25,19))
-player_mini_img.set_colorkey(settings.BLACK)
+player_mini_img.set_colorkey(BLACK)
 pygame.display.set_icon(player_mini_img)
 bullet_img = pygame.image.load(os.path.join("img", "bullet.png")).convert()
 rock_imgs = []
@@ -28,11 +37,11 @@ expl_anim['sm']=[]
 expl_anim['player']=[]
 for i in range(9):
     expl_img = (pygame.image.load(os.path.join("img", f"expl{i}.png")).convert())
-    expl_img.set_colorkey(settings.BLACK)
+    expl_img.set_colorkey(BLACK)
     expl_anim['lg'].append(pygame.transform.scale(expl_img, (75,75)))
     expl_anim['sm'].append(pygame.transform.scale(expl_img, (30,30)))
     player_expl_img = (pygame.image.load(os.path.join("img", f"player_expl{i}.png")).convert())
-    player_expl_img.set_colorkey(settings.BLACK)
+    player_expl_img.set_colorkey(BLACK)
     expl_anim['player'].append(player_expl_img)
 power_imgs = {}
 power_imgs['shield'] = pygame.image.load(os.path.join("img", "shield.png")).convert()
@@ -54,7 +63,7 @@ font_name = os.path.join("font.ttf")
 
 def draw_text(surf, text, size, x, y):
     font = pygame.font.Font(font_name, size)
-    text_surface = font.render(text, True, settings.WHITE)
+    text_surface = font.render(text, True, WHITE)
     text_rect = text_surface.get_rect()
     text_rect.centerx = x
     text_rect.top = y
@@ -73,8 +82,8 @@ def draw_health(surf, hp, x, y):
     fill = (hp/100)*BAR_LENGTH
     outline_rect = pygame.Rect(x,y,BAR_LENGTH,BAR_HEIGHT)
     fill_rect = pygame.Rect(x,y,fill,BAR_HEIGHT)
-    pygame.draw.rect(surf,settings.GREEN,fill_rect)
-    pygame.draw.rect(surf,settings.WHITE,outline_rect,2)
+    pygame.draw.rect(surf,GREEN,fill_rect)
+    pygame.draw.rect(surf,WHITE,outline_rect,2)
 
 def draw_lives(surf, lives, img, x, y):
     for i in range(lives):
@@ -85,14 +94,14 @@ def draw_lives(surf, lives, img, x, y):
 
 def draw_init():
     screen.blit(background_img, (0,0))
-    draw_text(screen,'太空生存战', 64, settings.WIDTH/2, settings.HEIGHT/4)
-    draw_text(screen,'← →移动飞船 空格键发射子弹', 22, settings.WIDTH/2, settings.HEIGHT/2)
-    draw_text(screen,'按任意键开始游戏', 18, settings.WIDTH/2, settings.HEIGHT*4/5)
-    draw_text(screen,'当前最高分' + str(high_score), 18, settings.WIDTH/2, settings.HEIGHT*3/4)
+    draw_text(screen,'太空生存战', 64, WIDTH/2, HEIGHT/4)
+    draw_text(screen,'← →移动飞船 空格键发射子弹', 22, WIDTH/2, HEIGHT/2)
+    draw_text(screen,'按任意键开始游戏', 18, WIDTH/2, HEIGHT*4/5)
+    draw_text(screen,'历史最高分' + str(high_score), 18, WIDTH/2, HEIGHT*3/4)
     pygame.display.update()
     waiting = True
     while waiting:
-        clock.tick(settings.FPS)
+        clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -105,11 +114,11 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(player_img,(50,38))
-        self.image.set_colorkey(settings.BLACK)
+        self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.radius = 20
-        self.rect.centerx = settings.WIDTH/2
-        self.rect.bottom = settings.HEIGHT - 10
+        self.rect.centerx = WIDTH/2
+        self.rect.bottom = HEIGHT - 10
         self.speedx = 8
         self.health = 100
         self.lives = 3
@@ -126,8 +135,8 @@ class Player(pygame.sprite.Sprite):
 
         if self.hidden and now - self.hidden_time >1000:
             self.hidden = False
-            self.rect.centerx = settings.WIDTH/2
-            self.rect.bottom = settings.HEIGHT - 10
+            self.rect.centerx = WIDTH/2
+            self.rect.bottom = HEIGHT - 10
 
         key_pressed = pygame.key.get_pressed()
 
@@ -136,8 +145,8 @@ class Player(pygame.sprite.Sprite):
         if key_pressed[pygame.K_LEFT]:
             self.rect.x -= self.speedx
 
-        if self.rect.right > settings.WIDTH:
-            self.rect.right = settings.WIDTH
+        if self.rect.right > WIDTH:
+            self.rect.right = WIDTH
         if self.rect.left < 0:
             self.rect.left = 0
 
@@ -160,7 +169,7 @@ class Player(pygame.sprite.Sprite):
     def hide(self):
         self.hidden = True
         self.hidden_time = pygame.time.get_ticks()
-        self.rect.center = (settings.WIDTH/2, settings.HEIGHT+500)
+        self.rect.center = (WIDTH/2, HEIGHT+500)
 
     def gunup(self):
         self.gun += 1
@@ -170,11 +179,11 @@ class Rock(pygame.sprite.Sprite):
     def __init__(self, speed_level):
         pygame.sprite.Sprite.__init__(self)
         self.image_ori = random.choice(rock_imgs)
-        self.image_ori.set_colorkey(settings.BLACK)
+        self.image_ori.set_colorkey(BLACK)
         self.image = self.image_ori.copy()
         self.rect = self.image.get_rect()
         self.radius = int(self.rect.width * 0.85 / 2)
-        self.rect.x = random.randrange(0,settings.WIDTH-self.rect.width)
+        self.rect.x = random.randrange(0,WIDTH-self.rect.width)
         self.rect.y = random.randrange(-180,-100)
         self.speedy = random.randrange(speed_level+2, speed_level+10)
         self.speedx = random.randrange(-3, 3)
@@ -193,8 +202,8 @@ class Rock(pygame.sprite.Sprite):
         self.rotate()
         self.rect.y += self.speedy
         self.rect.x += self.speedx
-        if self.rect.top > settings.HEIGHT or self.rect.left > settings.WIDTH or self.rect.right < 0:
-            self.rect.x = random.randrange(0,settings.WIDTH-self.rect.width)
+        if self.rect.top > HEIGHT or self.rect.left > WIDTH or self.rect.right < 0:
+            self.rect.x = random.randrange(0,WIDTH-self.rect.width)
             self.rect.y = random.randrange(-100,-40)
             self.speedy = random.randrange(speed_level+2, speed_level+10)
             self.speedx = random.randrange(-3, 3) 
@@ -203,7 +212,7 @@ class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
         self.image = bullet_img
-        self.image.set_colorkey(settings.BLACK)
+        self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.rect.centerx = x
         self.rect.bottom = y
@@ -243,14 +252,14 @@ class Power(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.type = random.choice(['shield', 'gun'])
         self.image = power_imgs[self.type]
-        self.image.set_colorkey(settings.BLACK)
+        self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.rect.center = center
         self.speedy = 3
 
     def update(self):
         self.rect.y += self.speedy
-        if self.rect.top > settings.HEIGHT:
+        if self.rect.top > HEIGHT:
             self.kill()
 
 all_sprites = pygame.sprite.Group()
@@ -287,7 +296,7 @@ while running :
             new_rock()
         score = 0
 
-    clock.tick(settings.FPS)
+    clock.tick(FPS)
 
     #取得输入
     for event in pygame.event.get():
@@ -350,14 +359,14 @@ while running :
         show_init = True
 
     #画面显示
-    screen.fill(settings.BLACK)
+    screen.fill(BLACK)
     screen.blit(background_img, (0,0))
     all_sprites.draw(screen)
-    draw_text(screen, "最高分数："+str(high_score), 18, settings.WIDTH*2/5, 10)
+    draw_text(screen, "最高分数："+str(high_score), 18, WIDTH*2/5, 10)
     draw_text(screen, "当前分数："+str(score), 18, 60, 30)
-    draw_text(screen,"难度："+str(speed_level),18,settings.WIDTH*2/3,10)
+    draw_text(screen,"难度："+str(speed_level),18,WIDTH*2/3,10)
     draw_health(screen, player.health,5,15)
-    draw_lives(screen, player.lives, player_mini_img, settings.WIDTH-100, 15)
+    draw_lives(screen, player.lives, player_mini_img, WIDTH-100, 15)
     pygame.display.update()
 
 pygame.quit()
