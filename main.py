@@ -315,6 +315,8 @@ while running :
     for hit in hits:
         random.choice(expl_sounds).play()
         score += hit.radius
+        if score >= high_score:
+            high_score = score
         if score - 1500 * speed_level >= 0:
             speed_level += 1
         expl = Explosion(hit.rect.center, 'lg')
